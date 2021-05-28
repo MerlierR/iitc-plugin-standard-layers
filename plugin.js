@@ -1,7 +1,7 @@
 // ==UserScript==
 // @id iitc-standard-layers
 // @name IITC Plugin: Standard Intel Layers
-// @category Layers
+// @category Layer
 // @version 0.0.0
 // @namespace https://github.com/MerlierR
 // @description Adds standard intel layer highlighters
