@@ -1,10 +1,12 @@
 // ==UserScript==
-// @id iitc-standard-layers
+// @id iitc-standard-layers@MerlierR
 // @name IITC Plugin: Standard Intel Layers
 // @category Layer
 // @version 0.0.0
-// @namespace https://github.com/MerlierR
-// @description Adds standard intel layer highlighters
+// @namespace https://github.com/jonatkins/ingress-intel-total-conversion
+// @updateURL https://github.com/MerlierR/iitc-plugin-standard-layers/raw/master/standard-intel-layers.user.js
+// @downloadURL https://github.com/MerlierR/iitc-plugin-standard-layers/raw/master/standard-intel-layers.user.js
+// @description Add standard intel layer highlighters
 // @include http://intel.ingress.com/intel*
 // @match http://intel.ingress.com/intel*
 // @include https://intel.ingress.com/intel*
