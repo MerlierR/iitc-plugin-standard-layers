@@ -22,7 +22,7 @@ function wrapper(plugin_info) {
     }
 
     plugin_info.buildName = 'iitc-standard-layers';
-    plugin_info.dateTimeVersion = '20210531124500';
+    plugin_info.dateTimeVersion = '20210531154500';
     plugin_info.pluginId = 'iitc-standard-layers';
 
     /**
