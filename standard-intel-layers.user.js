@@ -3,7 +3,7 @@
 // @id iitc-standard-layers@MerlierR
 // @name IITC Plugin: Standard Intel Layers
 // @category Highlighter
-// @version 0.0.1
+// @version 0.0.2
 // @namespace https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL https://github.com/MerlierR/iitc-plugin-standard-layers/raw/master/standard-intel-layers.user.js
 // @downloadURL https://github.com/MerlierR/iitc-plugin-standard-layers/raw/master/standard-intel-layers.user.js
@@ -34,9 +34,8 @@ function wrapper(plugin_info) {
      * - bit 2: scout controlled
      */
 
-    window.plugin.stdLayers = ((ns) => {
-        ns.DEFAULT_LAYER_DATA = [false, false, false]
-
+    window.plugin.stdLayers = (ns => {
+        ns.ENABLED = true
         ns.HIGHLIGHT_STYLE = {
             fill: true,
             fillColor: 'red',
@@ -62,12 +61,16 @@ function wrapper(plugin_info) {
         }
 
         ns.getLayerData = data => {
-            if (data.portal.options == null
-                || data.portal.options.ent == null
+            if (data == null
+                || data.portal == null
+                || data.portal.options == null) {
+                return null
+            }
+            if (data.portal.options.ent == null
                 || data.portal.options.ent[2] == null
                 || data.portal.options.ent[2][18] == null
             ) {
-                return ns.DEFAULT_LAYER_DATA
+                return [false, false, false]
             }
 
             return (data.portal.options.ent[2][18])
@@ -78,25 +81,34 @@ function wrapper(plugin_info) {
         }
 
         ns.highlight = data => {
-            if(data == null || data.portal == null) {
+            if (!ns.ENABLED) {
                 return
             }
-            const shouldHighlight = ns.typeVisitor[window._current_highlighter](ns.getLayerData(data))
+            var layerData = ns.getLayerData(data)
 
-            if (shouldHighlight) {
+            if (layerData == null) {
+                return
+            }
+
+            if (ns.typeVisitor[window._current_highlighter](layerData)) {
                 data.portal.setStyle(ns.HIGHLIGHT_STYLE);
             }
         }
 
+        ns.checkHighlightEnabled = data => {
+            // stock intel only sends the layer data when zoomed in to show all portals
+            ns.ENABLED = data.minPortalLevel === 0
+        }
+
         ns.setup = () => {
-            Object.values(ns.types).forEach((type) => {
-                window.addPortalHighlighter(type, ns.highlight);
+            window.addHook('mapDataRefreshStart', ns.checkHighlightEnabled)
+            Object.values(ns.types).forEach(function (type) {
+                window.addPortalHighlighter(type, ns);
             })
         }
 
         return ns
-    })(function () {
-    })
+    })({})
 
     function setup() {
         window.plugin.stdLayers.setup()
