@@ -1,8 +1,9 @@
 // ==UserScript==
+// @author MerlierR
 // @id iitc-standard-layers@MerlierR
 // @name IITC Plugin: Standard Intel Layers
 // @category Highlighter
-// @version 0.0.0
+// @version 0.0.1
 // @namespace https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL https://github.com/MerlierR/iitc-plugin-standard-layers/raw/master/standard-intel-layers.user.js
 // @downloadURL https://github.com/MerlierR/iitc-plugin-standard-layers/raw/master/standard-intel-layers.user.js
@@ -15,11 +16,13 @@
 // ==/UserScript==
 
 function wrapper(plugin_info) {
-    if (typeof window.plugin !== 'function') window.plugin = function () {
-    };
+    if (typeof window.plugin !== 'function') {
+        window.plugin = function () {
+        };
+    }
 
     plugin_info.buildName = 'iitc-standard-layers';
-    plugin_info.dateTimeVersion = '20210528190300';
+    plugin_info.dateTimeVersion = '20210531124500';
     plugin_info.pluginId = 'iitc-standard-layers';
 
     /**
@@ -30,67 +33,73 @@ function wrapper(plugin_info) {
      * - bit 1: captured
      * - bit 2: scout controlled
      */
-    window.plugin.stdLayers = function () {
-    };
 
-    window.plugin.stdLayers.types = {
-        VISITED: 'Visited Portals',
-        CAPTURED: 'Captured Portals',
-        SCOUT: 'Scout Controlled Portals',
-    }
+    window.plugin.stdLayers = ((ns) => {
+        ns.DEFAULT_LAYER_DATA = [false, false, false]
 
-    window.plugin.stdLayers.getLayerData = function (data) {
-        if (data == null
-            || data.portal == null
-            || data.portal.options == null
-            || data.portal.options.ent == null
-            || data.portal.options.ent[2] == null
-            || data.portal.options.ent[2][18] == null
-        ) {
-            return [false, false, false]
+        ns.HIGHLIGHT_STYLE = {
+            fill: true,
+            fillColor: 'red',
+            fillOpacity: 1,
         }
 
-        return (data.portal.options.ent[2][18])
-            .toString(2)
-            .padStart(3, 0)
-            .split('')
-            .map(it => it === '1')
-    }
-
-    window.plugin.stdLayers.highlight = function (data) {
-        if (!Object.values(window.plugin.stdLayers.types).includes(_current_highlighter)) {
-            return
-        }
-        var [scout, captured, visited] = window.plugin.stdLayers.getLayerData(data)
-
-        var shouldHighlight = false
-        switch (_current_highlighter) {
-            case window.plugin.stdLayers.types.VISITED:
-                shouldHighlight = visited
-                break
-            case window.plugin.stdLayers.types.CAPTURED:
-                shouldHighlight = captured
-                break
-            case window.plugin.stdLayers.types.SCOUT:
-                shouldHighlight = scout
-                break
+        ns.types = {
+            VISITED: 'std - Visited',
+            NOT_VISITED: 'std - Visited (inverse)',
+            CAPTURED: 'std - Captured',
+            NOT_CAPTURED: 'std - Captured (inverse)',
+            SCOUT: 'std - Scout Controlled',
+            NOT_SCOUT: 'std - Scout Controlled (inverse)',
         }
 
-        if (shouldHighlight) {
-            data.portal.setStyle({
-                color: 'hotpink',
-                fill: true,
-                fillColor: 'hotpink',
-                fillOpacity: 1,
-                radius: 10
-            });
+        ns.typeVisitor = {
+            [ns.types.VISITED]: ([, , visited]) => visited,
+            [ns.types.NOT_VISITED]: ([, , visited]) => !visited,
+            [ns.types.CAPTURED]: ([, captured,]) => captured,
+            [ns.types.NOT_CAPTURED]: ([, captured,]) => !captured,
+            [ns.types.SCOUT]: ([scout, ,]) => scout,
+            [ns.types.NOT_SCOUT]: ([scout, ,]) => !scout,
         }
-    }
+
+        ns.getLayerData = data => {
+            if (data.portal.options == null
+                || data.portal.options.ent == null
+                || data.portal.options.ent[2] == null
+                || data.portal.options.ent[2][18] == null
+            ) {
+                return ns.DEFAULT_LAYER_DATA
+            }
+
+            return (data.portal.options.ent[2][18])
+                .toString(2)
+                .padStart(3, 0)
+                .split('')
+                .map(it => it === '1')
+        }
+
+        ns.highlight = data => {
+            if(data == null || data.portal == null) {
+                return
+            }
+            const shouldHighlight = ns.typeVisitor[window._current_highlighter](ns.getLayerData(data))
+
+            if (shouldHighlight) {
+                data.portal.setStyle(ns.HIGHLIGHT_STYLE);
+            }
+        }
+
+        ns.setup = () => {
+            Object.values(ns.types).forEach((type) => {
+                window.addPortalHighlighter(type, ns.highlight);
+            })
+        }
+
+        return ns
+    })(function () {
+    })
 
     function setup() {
-        Object.values(window.plugin.stdLayers.types).forEach(function (type) {
-            window.addPortalHighlighter(type, window.plugin.stdLayers.highlight);
-        })
+        window.plugin.stdLayers.setup()
     }
 
     setup.info = plugin_info;
