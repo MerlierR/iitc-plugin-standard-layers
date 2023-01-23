@@ -1,3 +1,5 @@
+**_Archived as there are more used alternatives nowadays_**
+
 # IITC Plugin - Standard Layer
 
 Adds highlighters for the stock intel layers
